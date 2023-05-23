@@ -30,9 +30,13 @@ const cheackAmazonPrice = async (url, expected_price) => {
     const $_parsed_html = await getHtml(url);
     const price = $_parsed_html('span').find('.a-price-whole').text() //fetch price
     const name = $_parsed_html('div').find('#productTitle').text() //fetch product name
-    console.log(`this is price without change ${price}`);
+
+    console.log(`this is price without change ${price}`); //for checking
+
     var priceInt = convertPrice(price) //convert price to int value
-    console.log(priceInt);
+
+    console.log(priceInt); //for checking
+
     if(priceInt <= expected_price){
         sendPush(priceInt, name)
         console.log("Haan bhai lele ab yeh sasta hogaya")
