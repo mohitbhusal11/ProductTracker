@@ -28,7 +28,7 @@ var getHtml = async url => {
 //parser sabse imp function
 const cheackAmazonPrice = async (url, expected_price) => {
     const $_parsed_html = await getHtml(url);
-    const price = $_parsed_html('span').find('.a-price-whole').text() //fetch price
+    const price = $_parsed_html('.a-price').find('span.a-price-whole')[0].text() //fetch price
     const name = $_parsed_html('div').find('#productTitle').text() //fetch product name
 
     console.log(`this is price without change ${price}`); //for checking
