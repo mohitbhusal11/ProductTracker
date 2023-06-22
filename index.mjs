@@ -1,65 +1,85 @@
-//importing packages jo mujhe chaiye
-// const cheerio = require('cheerio');
 import cheerio from "cheerio";
 import fetch from "node-fetch";
+import nodemailer from 'nodemailer';
 
-//information website se link and expected price
-const AMAZON_URL = 'https://www.amazon.in/Infinity-Glide-500-Wireless-Headphones/dp/B07W6NDVSR/?th=1'
-const EXPECTED_AMOUNT = 1000
 
-// Create Price converter function
+const AMAZON_URL = 'https://www.amazon.in/Infinity-Glide-500-Wireless-Headphones/dp/B07W6NDVSR/?th=1';
+const EXPECTED_AMOUNT = 1000;
+
 const convertPrice = (amount) => parseInt(Number(amount.replace(/[^0-9.-]+/g, "")));
 
-//start web scrapper code
-var getHtml = async url => {
-    const headers = {
-        method: 'get',
-        headers: {
-            'User-Agent': //for this search karo google pe "what is my user agent"
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36'
-        }
+const getHtml = async (url) => {
+  const headers = {
+    method: 'get',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36'
     }
+  };
 
-    const res = await fetch(url);
-    const html = await res.text();
-    return cheerio.load(html);
-}
+  const res = await fetch(url, headers);
+  const html = await res.text();
+  return cheerio.load(html);
+};
 
-//parser sabse imp function
-const cheackAmazonPrice = async (url, expected_price) => {
-    const $_parsed_html = await getHtml(url);
-    const price = $_parsed_html('.a-price').find('span.a-price-whole')[0].text() //fetch price
-    const name = $_parsed_html('div').find('#productTitle').text() //fetch product name
+const checkAmazonPrice = async (url, expected_price) => {
+  const $ = await getHtml(url);
+  const price = $('.a-price-whole').first().text().trim();
+  const name = $('#productTitle').text().trim();
 
-    console.log(`this is price without change ${price}`); //for checking
+  console.log(`Price: ${price}`);
+  console.log(`Product Name: ${name}`);
 
-    var priceInt = convertPrice(price) //convert price to int value
+  const priceInt = convertPrice(price);
 
-    console.log(priceInt); //for checking
+  console.log(`Price (Integer): ${priceInt}`);
 
-    if(priceInt <= expected_price){
-        sendPush(priceInt, name)
-        console.log("Haan bhai lele ab yeh sasta hogaya")
-    }
-    else{
-        console.log("Abhi ruk bhai thoda aur sasta hone de fir lelena")
-    }
-}
+  if (priceInt <= expected_price) {
+    sendPush(priceInt, name);
+    console.log("Haan bhai lele ab yeh sasta hogaya");
+  } else {
+    console.log("Abhi ruk bhai thoda aur sasta hone de fir lelena");
+  }
+};
+
+// const sendPush = async (price, name) => {
+//   const notifyChannelId = 'MfGM2vjSWgJnNb1YPjkl';
+//   const dataString = `Price went down: ${name} went below ${price}`;
+
+//   const headers = {
+//     method: 'POST',
+//     body: dataString,
+//     headers: {
+//       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36'
+//     }
+//   };
+
+//   const res = await fetch(`https://notify.run/${notifyChannelId}`, headers);
+//   return true;
+// };
+
+
+//----this is change----
 
 const sendPush = async (price, name) => {
-    const notifyChannelId = 'MfGM2vjSWgJnNb1YPjkl'
-    const dataString = `Price went down: ${name} went below ${price} `
-    var headers = {
-        method : 'POST',
-        body : 'dataString',
-        headers : {
-            'User-Agent' :
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36'
-        }
+    const mailOptions = {
+        from: 'iamfake001122@gmail.com',
+        to: 'rohitbhusal158@gmail.com',
+        subject: 'Price Alert',
+        text: `Price went down: ${name} is now below ${price}`,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log('Email notification sent successfully.');
+    }   catch (error) {
+        console.error('Error sending email notification:', error);
     }
-
-    const res = await fetch(`https://notify.run/${notifyChannelId}`, headers)
-    return true
-}
-
-cheackAmazonPrice(AMAZON_URL, 100)
+};
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'iamfake001122@gmail.com',
+      pass: 'Mohit@989',
+    },
+});
+checkAmazonPrice(AMAZON_URL, EXPECTED_AMOUNT);
